@@ -1,4 +1,5 @@
 #![feature(random)]
+use std::cmp::Ordering;
 // requires nightly toolchain
 use std::io::{self, BufRead, StdinLock, Write, stdout};
 use std::random::random;
@@ -41,21 +42,29 @@ fn main() {
 
     let random_number = num_min + (random::<u32>() % (num_max - num_min + 1) as u32) as i32;
 
-    println!("randomized the number");
+    let max_attemps = 4;
+    println!("randomized the number, you have {} attemps", max_attemps);
     let mut attempts = 0;
     let mut guess = random_number - 1;
-    while guess != random_number {
+
+    while guess != random_number && attempts < max_attemps {
         attempts += 1;
         guess = ask_for_number("take a guess: ");
-        if guess < random_number {
-            println!("it's too little!");
-        } else if guess > random_number {
-            println!("it's too big!");
+
+        match guess.cmp(&random_number) {
+            Ordering::Less => println!("it's too little!"),
+            Ordering::Greater => println!("it's too big!"),
+            Ordering::Equal => println!(
+                "you've guessed the number after {} attempts, the number is {}",
+                attempts, random_number
+            ),
         }
     }
 
-    println!(
-        "you've guess the number after {} attempts, the number is {}",
-        attempts, random_number
-    );
+    if guess != random_number {
+        println!(
+            "you failed to guess the number! The number was {}",
+            random_number
+        )
+    }
 }
